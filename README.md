@@ -412,6 +412,8 @@ Results land in `results/benchmark/clair3/` and `results/benchmark/deepvariant/`
 
 > Benchmarked against GIAB HG002 v4.2.1 | Reference: GRCh38 | Tool: hap.py (vcfeval engine) | Regions: chr1–22 high-confidence BED
 
+---
+
 ## SNP Performance (PASS)
 
 | Tool | Recall | Precision | F1 Score |
@@ -430,55 +432,69 @@ Results land in `results/benchmark/clair3/` and `results/benchmark/deepvariant/`
 
 ---
 
-# Interpretation
+## Interpretation
 
-## Why Recall Is Extremely Low
+### Why Recall Is Extremely Low
 
-Recall measures sensitivity. It is defined as:
+Recall measures sensitivity:
 
-\[
-\text{Recall} = \frac{TP}{TP + FN}
-\]
 
-True positives represent correctly detected variants. False negatives are real variants that were missed.
+Recall = TP / (TP + FN)
 
-Because the dataset was aggressively subsampled, read depth dropped sharply. Variant callers depend on multiple independent reads supporting a mutation to pass statistical thresholds. When coverage is low, most true variants do not accumulate enough evidence to be called.
 
-As a result, the majority of real SNPs and INDELs were classified as false negatives. This explains recall values below 1%. The model was not failing randomly; it simply lacked sufficient signal.
+TP = true positives.  
+FN = false negatives.
 
-In practical terms, removing 75% of the reads removes most of the statistical support required to detect variation.
+We began with a reduced 3.4 GB dataset and then subsampled it to one quarter of the reads. That drastically lowered sequencing depth.
 
----
+Variant callers require multiple independent reads supporting a mutation before calling it. When depth drops, most real variants do not accumulate enough statistical evidence to pass confidence thresholds.
 
-## Why Precision Remains Moderate
+Result: millions of real variants become false negatives.
 
-Precision measures how often a reported call is correct. It is defined as:
+That is why recall falls below 1%.
 
-\[
-\text{Precision} = \frac{TP}{TP + FP}
-\]
-
-False positives represent incorrect variant calls.
-
-Despite low coverage, both tools remained conservative. They only emitted calls when internal confidence scores were high. This reduced the number of total calls but kept many of those calls correct.
-
-Thus, even though millions of variants were missed, the relatively small number of reported variants were often true positives. This preserved moderate precision values while recall collapsed.
+This is not random model failure. It is a signal problem. Removing 75% of the reads removes most of the statistical support needed to detect variation.
 
 ---
 
-## Tool Comparison
+### Why Precision Remains Moderate
 
-For SNP detection, Clair3 achieved higher recall and higher precision than DeepVariant, resulting in nearly double the F1 score. For INDEL detection, Clair3 had higher recall, while DeepVariant showed slightly higher precision. In both cases, overall performance was strongly limited by low sequencing depth rather than algorithmic instability.
+Precision measures correctness of reported calls:
+
+
+Precision = TP / (TP + FP)
+
+
+FP = false positives.
+
+Even with low coverage, both tools were conservative. They only emitted calls when confidence was high. That reduced the total number of calls but preserved correctness among those calls.
+
+So the models missed most variants, but they rarely guessed.
+
+Low sensitivity.  
+Moderate specificity.
 
 ---
 
-# Conclusion
+### Tool Comparison
 
-The dominant factor affecting performance was coverage reduction due to subsampling.
+For SNPs, Clair3 achieved higher recall and higher precision than DeepVariant, resulting in nearly double the F1 score.
 
-Low depth reduces statistical power. Reduced power increases false negatives. Increased false negatives drive recall toward zero.
+For INDELs, Clair3 had better recall, while DeepVariant showed slightly higher precision.
 
-Under full high-coverage conditions for HG002 benchmarking, expected performance would approach recall and precision values near 0.99. The present results reflect data limitations rather than fundamental model failure.
+However, both tools were strongly constrained by low sequencing depth rather than algorithmic instability.
+
+---
+
+## Conclusion
+
+The primary limiting factor was coverage reduction due to subsampling.
+
+Low depth reduces statistical power.  
+Reduced power increases false negatives.  
+Increased false negatives collapse recall.
+
+Under standard high-coverage HG002 benchmarking conditions, recall and precision typically approach ~0.99. The present results reflect data limitation, not fundamental model failure.
 
 ---
 
