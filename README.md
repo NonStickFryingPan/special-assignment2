@@ -434,30 +434,20 @@ Results land in `results/benchmark/clair3/` and `results/benchmark/deepvariant/`
 
 ## Interpretation
 
-### The "Recall" Problem: Why the numbers bottomed out
+### "Recall" Problem
 In this run, our **Recall** (sensitivity) was incredibly low. To understand why, look at the math:
 
 $$Recall = \frac{TP}{TP + FN}$$
 
-* **TP**: True Positives (Variants we caught)
-* **FN**: False Negatives (Variants we missed)
-
-The issue wasn't the code; it was the data. We started with a 3.4 GB slice and then slashed it further by subsampling only 25% of the reads. This nuked our **sequencing depth**. 
-
-Variant callers like DeepVariant and Clair3 aren't guessers—they need multiple independent "votes" (reads) to confirm a mutation. By throwing away 75% of the evidence, most real variants didn't have enough supporting reads to meet the statistical threshold. They were treated as noise and ignored, turning millions of potential hits into False Negatives. A Recall under 1% is a textbook symptom of a **signal-to-noise problem**, not a model failure.
-
+The issue wasn the data. We started with a 3.4 GB slice of a whole HG002 dataset and then slashed it further by subsampling only 25% of the reads. This significantly reduced our **sequencing depth**. Variant callers like DeepVariant and Clair3 need multiple independent "votes" (reads) to confirm a mutation. By throwing away 75% of the evidence, most real variants didn't have enough supporting reads to meet the statistical threshold. They were treated as noise and ignored, turning millions of potential hits into False Negatives. A Recall under 1% is a textbook symptom of a **signal-to-noise problem**.
 ---
 
-### Why Precision Held Its Ground
+### Precision
 While Recall crashed, **Precision** stayed moderate. 
 
 $$Precision = \frac{TP}{TP + FP}$$
 
-* **FP**: False Positives (Incorrectly flagged variants)
-
-Even at low coverage, both tools stayed conservative. They didn't start "hallucinating" variants just because the data was thin; they only made a call when they were absolutely sure. By refusing to guess, they kept the False Positive count low. 
-
-**The takeaway:** The models were blind to most of the truth (low sensitivity), but they were rarely wrong about what they *did* see (moderate specificity).
+Even at low coverage, both tools stayed conservative. They didn't start "hallucinating" variants just because the data was thin; they only made a call when they were absolutely sure. By refusing to guess, they kept the False Positive count low. **The takeaway:** The models were blind to most of the truth (low sensitivity), but they were rarely wrong about what they *did* see (moderate specificity).
 
 ---
 
@@ -471,13 +461,13 @@ Ultimately, both tools were fighting a losing battle against the low depth. The 
 
 ## Conclusion
 
-The bottleneck was 100% the **coverage reduction** from subsampling.
+The bottleneck was the **coverage reduction** from subsampling.
 
 1.  **Low Depth** → Weak statistical power.
 2.  **Weak Power** → Massive spike in False Negatives.
 3.  **High FN** → Total collapse of Recall.
 
-In a standard HG002 benchmark with high coverage, you’d expect these metrics to be up near **0.99**. These results don't show a failure of the models—they show exactly what happens when you try to do genomics with the lights turned off.
+In a standard HG002 benchmark with high coverage, you’d expect these metrics to be up near **0.99**. These results show exactly what happens when you use data with very low coverage.
 
 ---
 
