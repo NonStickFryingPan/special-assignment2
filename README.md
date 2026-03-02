@@ -439,7 +439,8 @@ In this run, our **Recall** (sensitivity) was incredibly low. To understand why,
 
 $$Recall = \frac{TP}{TP + FN}$$
 
-The issue wasn the data. We started with a 3.4 GB slice of a whole HG002 dataset and then slashed it further by subsampling only 25% of the reads. This significantly reduced our **sequencing depth**. Variant callers like DeepVariant and Clair3 need multiple independent "votes" (reads) to confirm a mutation. By throwing away 75% of the evidence, most real variants didn't have enough supporting reads to meet the statistical threshold. They were treated as noise and ignored, turning millions of potential hits into False Negatives. A Recall under 1% is a textbook symptom of a **signal-to-noise problem**.
+The issue wasn't the data. We started with a 3.4 GB slice of a whole HG002 dataset and then slashed it further by subsampling only 25% of the reads. This significantly reduced our **sequencing depth**. Variant callers like DeepVariant and Clair3 need multiple independent "votes" (reads) to confirm a mutation. By throwing away 75% of the evidence, most real variants didn't have enough supporting reads to meet the statistical threshold. They were treated as noise and ignored, turning millions of potential hits into False Negatives. A Recall under 1% is a textbook symptom of a **signal-to-noise problem**.
+
 ---
 
 ### Precision
