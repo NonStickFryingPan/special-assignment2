@@ -434,67 +434,50 @@ Results land in `results/benchmark/clair3/` and `results/benchmark/deepvariant/`
 
 ## Interpretation
 
-### Why Recall Is Extremely Low
+### The "Recall" Problem: Why the numbers bottomed out
+In this run, our **Recall** (sensitivity) was incredibly low. To understand why, look at the math:
 
-Recall measures sensitivity:
+$$Recall = \frac{TP}{TP + FN}$$
 
+* **TP**: True Positives (Variants we caught)
+* **FN**: False Negatives (Variants we missed)
 
-Recall = TP / (TP + FN)
+The issue wasn't the code; it was the data. We started with a 3.4 GB slice and then slashed it further by subsampling only 25% of the reads. This nuked our **sequencing depth**. 
 
-
-TP = true positives.  
-FN = false negatives.
-
-We began with a reduced 3.4 GB dataset and then subsampled it to one quarter of the reads. That drastically lowered sequencing depth.
-
-Variant callers require multiple independent reads supporting a mutation before calling it. When depth drops, most real variants do not accumulate enough statistical evidence to pass confidence thresholds.
-
-Result: millions of real variants become false negatives.
-
-That is why recall falls below 1%.
-
-This is not random model failure. It is a signal problem. Removing 75% of the reads removes most of the statistical support needed to detect variation.
+Variant callers like DeepVariant and Clair3 aren't guessers—they need multiple independent "votes" (reads) to confirm a mutation. By throwing away 75% of the evidence, most real variants didn't have enough supporting reads to meet the statistical threshold. They were treated as noise and ignored, turning millions of potential hits into False Negatives. A Recall under 1% is a textbook symptom of a **signal-to-noise problem**, not a model failure.
 
 ---
 
-### Why Precision Remains Moderate
+### Why Precision Held Its Ground
+While Recall crashed, **Precision** stayed moderate. 
 
-Precision measures correctness of reported calls:
+$$Precision = \frac{TP}{TP + FP}$$
 
+* **FP**: False Positives (Incorrectly flagged variants)
 
-Precision = TP / (TP + FP)
+Even at low coverage, both tools stayed conservative. They didn't start "hallucinating" variants just because the data was thin; they only made a call when they were absolutely sure. By refusing to guess, they kept the False Positive count low. 
 
-
-FP = false positives.
-
-Even with low coverage, both tools were conservative. They only emitted calls when confidence was high. That reduced the total number of calls but preserved correctness among those calls.
-
-So the models missed most variants, but they rarely guessed.
-
-Low sensitivity.  
-Moderate specificity.
+**The takeaway:** The models were blind to most of the truth (low sensitivity), but they were rarely wrong about what they *did* see (moderate specificity).
 
 ---
 
-### Tool Comparison
+### Tool Head-to-Head
+* **SNPs:** **Clair3** outperformed DeepVariant across the board, effectively doubling the F1 score. 
+* **INDELs:** It was a trade-off. **Clair3** was better at spotting them (Recall), but **DeepVariant** was slightly more reliable when it actually made a call (Precision).
 
-For SNPs, Clair3 achieved higher recall and higher precision than DeepVariant, resulting in nearly double the F1 score.
-
-For INDELs, Clair3 had better recall, while DeepVariant showed slightly higher precision.
-
-However, both tools were strongly constrained by low sequencing depth rather than algorithmic instability.
+Ultimately, both tools were fighting a losing battle against the low depth. The bottleneck here was the input data, not the algorithms themselves.
 
 ---
 
 ## Conclusion
 
-The primary limiting factor was coverage reduction due to subsampling.
+The bottleneck was 100% the **coverage reduction** from subsampling.
 
-Low depth reduces statistical power.  
-Reduced power increases false negatives.  
-Increased false negatives collapse recall.
+1.  **Low Depth** → Weak statistical power.
+2.  **Weak Power** → Massive spike in False Negatives.
+3.  **High FN** → Total collapse of Recall.
 
-Under standard high-coverage HG002 benchmarking conditions, recall and precision typically approach ~0.99. The present results reflect data limitation, not fundamental model failure.
+In a standard HG002 benchmark with high coverage, you’d expect these metrics to be up near **0.99**. These results don't show a failure of the models—they show exactly what happens when you try to do genomics with the lights turned off.
 
 ---
 
