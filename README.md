@@ -1,4 +1,3 @@
-```markdown
 <div align="center">
 
 # 🧬 HG002 Variant Calling Pipeline
@@ -44,7 +43,6 @@ The pipeline uses **Nextflow DSL2** for workflow orchestration, **Singularity/Ap
 ### Subsetting
 
 The full FASTQ (3.4 GB, 138,688 reads) was subsampled to a quarter for this coursework:
-
 ```bash
 head -n 138688 m54238_180901_011437.Q20.fastq > HG002_subset_quarter.fastq
 # 34,672 reads · 851 MB
@@ -55,7 +53,6 @@ head -n 138688 m54238_180901_011437.Q20.fastq > HG002_subset_quarter.fastq
 ---
 
 ## Pipeline
-
 ```
 PacBio HiFi FASTQ
        │
@@ -101,7 +98,6 @@ PacBio HiFi FASTQ
 ---
 
 ## Repository Layout
-
 ```
 variant-calling-pipeline/
 ├── pipeline/
@@ -133,7 +129,6 @@ variant-calling-pipeline/
 ## Pipeline Files
 
 ### `pipeline/main.nf`
-
 ```groovy
 nextflow.enable.dsl = 2
 
@@ -247,7 +242,6 @@ workflow {
 ```
 
 ### `pipeline/nextflow.config`
-
 ```groovy
 singularity {
     enabled          = true
@@ -286,7 +280,6 @@ params {
 ```
 
 ### `scripts/run_benchmark.sh`
-
 ```bash
 #!/bin/bash
 #SBATCH --job-name=happy_benchmark
@@ -334,7 +327,6 @@ echo "DONE"
 ```
 
 ### `scripts/download_data.sh`
-
 ```bash
 #!/bin/bash
 # Usage: bash download_data.sh /path/to/target/dir
@@ -376,20 +368,17 @@ echo "Done. Update /YOUR/PATH in pipeline/nextflow.config and scripts/run_benchm
 - ~25 GB scratch space
 
 ### Step 1 — Clone
-
 ```bash
 git clone https://github.com/YOUR_USERNAME/variant-calling-pipeline.git
 cd variant-calling-pipeline
 ```
 
 ### Step 2 — Download input data
-
 ```bash
 bash scripts/download_data.sh /your/target/directory
 ```
 
 ### Step 3 — Pull containers
-
 ```bash
 SDIR=/your/path/work/singularity && mkdir -p $SDIR
 
@@ -405,14 +394,12 @@ apptainer pull $SDIR/happy.img                    docker://pkrusche/hap.py:lates
 Replace all `/YOUR/PATH` placeholders in `pipeline/nextflow.config` and `scripts/run_benchmark.sh`.
 
 ### Step 5 — Run variant calling
-
 ```bash
 screen -S pipeline
 nextflow run pipeline/main.nf -c pipeline/nextflow.config
 ```
 
 ### Step 6 — Run benchmarking
-
 ```bash
 sbatch scripts/run_benchmark.sh
 ```
@@ -494,4 +481,3 @@ Wall-time limits were too short. DeepVariant `make_examples` alone took ~2 hours
 *Nextflow · Clair3 · DeepVariant · GIAB · SLURM · Singularity · GRCh38 · hap.py*
 
 </div>
-```
