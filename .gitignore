@@ -1,0 +1,19 @@
+# Large data files
+data/
+ref/
+giab/
+results/
+work/
+
+# Nextflow runtime
+.nextflow/
+.nextflow.log*
+
+# Keep results structure but not content
+!results/.gitkeep
+!results/alignment/.gitkeep
+!results/clair3/.gitkeep
+!results/deepvariant/.gitkeep
+!results/benchmark/.gitkeep
+!results/benchmark/clair3/.gitkeep
+!results/benchmark/deepvariant/.gitkeep
